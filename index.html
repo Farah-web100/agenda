@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Agenda modifiable dans les cases</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f3f3f3;
+      text-align: center;
+    }
+    .calendar {
+      max-width: 800px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .nav-buttons {
+      margin-bottom: 10px;
+    }
+    button {
+      margin: 0 5px;
+      padding: 5px 15px;
+      cursor: pointer;
+    }
+    .month {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th {
+      background: #4CAF50;
+      color: #fff;
+      padding: 10px;
+    }
+    td {
+      height: 100px;
+      width: 14.28%;
+      border: 1px solid #ddd;
+      vertical-align: top;
+      position: relative;
+    }
+    /* Affichage du numéro du jour en haut à gauche */
+    .day-number {
+      font-weight: bold;
+      position: absolute;
+      top: 5px;
+      left: 5px;
+    }
+    /* Zone où on écrit dans la case */
+    .day-content {
+      margin-top: 25px; /* on laisse la place pour le jour */
+      padding: 5px;
+      height: 65px; /* ajuster selon envie */
+      overflow-y: auto;
+    }
+    .today {
+      background: #FFF9C4;
+    }
+  </style>
+</head>
+<body>
+  <div class="calendar">
+    <div class="nav-buttons">
+      <button onclick="prevMonth()">◀ Mois précédent</button>
+      <button onclick="nextMonth()">Mois suivant ▶</button>
+    </div>
+    <div class="month" id="month"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Lun</th>
+          <th>Mar</th>
+          <th>Mer</th>
+          <th>Jeu</th>
+          <th>Ven</th>
+          <th>Sam</th>
+          <th>Dim</th>
+        </tr>
+      </thead>
+      <tbody id="calendar-body"></tbody>
+    </table>
+  </div>
+
+  <script>
+    let currentDate = new Date();
+
+    function renderCalendar() {
+      let year = currentDate.getFullYear();
+      let month = currentDate.getMonth();
+
+      const monthNames = [
+        "Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
+      ];
+
+      const monthEl = document.getElementById('month');
+      monthEl.textContent = `${monthNames[month]} ${year}`;
+
+      const bodyEl = document.getElementById('calendar-body');
+      bodyEl.innerHTML = "";
+
+      // Jour de la semaine du 1er jour (1 = Lundi, 7 = Dimanche)
+      let firstDay = new Date(year, month, 1).getDay();
+      // Ajuster car en JS, 0 = Dimanche
+      if (firstDay === 0) {
+        firstDay = 7;
+      }
+
+      // Nombre total de jours dans le mois
+      let totalDays = new Date(year, month + 1, 0).getDate();
+
+      let currentCellDay = 1;
+
+      // On crée 6 lignes max (ça couvre tous les cas de figure)
+      for (let row = 0; row < 6; row++) {
+        let tr = document.createElement('tr');
+        for (let col = 1; col <= 7; col++) {
+          let td = document.createElement('td');
+
+          // On remplit les cases vides avant le premier jour
+          if ((row === 0 && col < firstDay) || currentCellDay > totalDays) {
+            tr.appendChild(td);
+            continue;
+          }
+
+          // On affiche le jour du mois
+          let dayNumber = document.createElement('div');
+          dayNumber.className = 'day-number';
+          dayNumber.textContent = currentCellDay;
+          td.appendChild(dayNumber);
+
+          // Si c'est la date d'aujourd'hui, on colorie en jaune
+          let today = new Date();
+          if (
+            currentCellDay === today.getDate() &&
+            year === today.getFullYear() &&
+            month === today.getMonth()
+          ) {
+            td.classList.add('today');
+          }
+
+          // Zone contenteditable
+          let contentDiv = document.createElement('div');
+          contentDiv.className = 'day-content';
+          contentDiv.contentEditable = true;
+
+          // Clé unique pour stocker dans localStorage
+          let localStorageKey = `${year}-${month}-${currentCellDay}`;
+
+          // Récupérer la valeur stockée si elle existe
+          let savedText = localStorage.getItem(localStorageKey);
+          if (savedText) {
+            contentDiv.innerText = savedText;
+          }
+
+          // Quand l'utilisateur quitte la zone (blur), on stocke
+          contentDiv.addEventListener('blur', () => {
+            localStorage.setItem(localStorageKey, contentDiv.innerText);
+          });
+
+          td.appendChild(contentDiv);
+
+          tr.appendChild(td);
+          currentCellDay++;
+        }
+        bodyEl.appendChild(tr);
+
+        if (currentCellDay > totalDays) break;
+      }
+    }
+
+    function prevMonth() {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendar();
+    }
+
+    function nextMonth() {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendar();
+    }
+
+    window.onload = renderCalendar;
+  </script>
+</body>
+</html>
