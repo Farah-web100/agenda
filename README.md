@@ -26,4 +26,4 @@ Les notes ajoutées sont enregistrées localement, sans base de données, grâce
 - Gestion des heures / évènements plus avancés.
 - Sélecteur d’année (au lieu de naviguer seulement mois par mois).
 
-
+![alt text](image.png)
